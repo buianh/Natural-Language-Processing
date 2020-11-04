@@ -71,8 +71,11 @@ class ParserModel(nn.Module):
         ###     Linear Layer: https://pytorch.org/docs/stable/nn.html#torch.nn.Linear
         ###     Xavier Init: https://pytorch.org/docs/stable/nn.html#torch.nn.init.xavier_uniform_
         ###     Dropout: https://pytorch.org/docs/stable/nn.html#torch.nn.Dropout
-
-
+        self.embed_to_hidden= nn.Linear(n_features*self.embed_size,hidden_size)
+        nn.init.xavier_uniform_(self.embed_to_hidden.weight,gain=1)
+        self.dropout = nn.Dropout(p=self.dropout_prob)
+        self.hidden_to_logits = nn.Linear(hidden_size,n_classes)
+        nn.init.xavier_uniform_(self.hidden_to_logits.weight,gain=1)
         ### END YOUR CODE
 
     def embedding_lookup(self, t):
@@ -106,6 +109,9 @@ class ParserModel(nn.Module):
 
 
         ### END YOUR CODE
+        batch_size = t.size()[0]
+        x = self.pretrained_embeddings (t)
+        x = torch.reshape(x,(batch_size, self.n_features * self.embed_size))
         return x
 
 
@@ -144,4 +150,9 @@ class ParserModel(nn.Module):
 
 
         ### END YOUR CODE
+        embeddings = self.embedding_lookup(t)
+        h = self.embed_to_hidden(embeddings)
+        hidden = F.relu(h)
+        dropout = self.dropout(hidden)
+        logits = self.hidden_to_logits(dropout)
         return logits

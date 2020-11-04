@@ -10,6 +10,7 @@ import os
 import pickle
 import math
 import time
+import torch
 
 from torch import nn, optim
 import torch
@@ -45,8 +46,9 @@ def train(parser, train_data, dev_data, output_path, batch_size=1024, n_epochs=1
     ### Please see the following docs for support:
     ###     Adam Optimizer: https://pytorch.org/docs/stable/optim.html
     ###     Cross Entropy Loss: https://pytorch.org/docs/stable/nn.html#crossentropyloss
-
-
+    
+    optimizer = torch.optim.Adam(parser.model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
+    loss_func = nn.CrossEntropyLoss()
     ### END YOUR CODE
 
     for epoch in range(n_epochs):
@@ -98,7 +100,10 @@ def train_for_epoch(parser, train_data, dev_data, optimizer, loss_func, batch_si
             ###      4) Take step with the optimizer
             ### Please see the following docs for support:
             ###     Optimizer Step: https://pytorch.org/docs/stable/optim.html#optimizer-step
-
+            logits = parser.model(train_x)
+            loss = loss_func(logits,train_y)
+            loss.backward()
+            optimizer.step()
 
             ### END YOUR CODE
             prog.update(1)
@@ -118,7 +123,7 @@ if __name__ == "__main__":
     debug = True
     # debug = False
 
-    assert(torch.__version__ == "1.0.0"),  "Please install torch version 1.0.0"
+    #assert(torch.__version__ == "1.0.0"),  "Please install torch version 1.0.0"
 
     print(80 * "=")
     print("INITIALIZING")
